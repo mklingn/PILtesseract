@@ -2,8 +2,6 @@
 
 Attributes:
     tesseract_dir_path (unicode): The path to the tesseract install directory.
-    tesseract_stderr (file object): Where to pipe tesseract stderr stream. Defaults to
-        sys.stdin. If None, errors are ignored.
 
 """
 import os
@@ -14,27 +12,33 @@ from PIL import Image
 
 #If tesseract binary is not on os.environ["PATH"] the put the path below.
 tesseract_dir_path = ""
-tesseract_stderr = sys.stdout
 
 
-def get_text_from_image(image, psm=3, lang="eng", tessdata_dir_path=None,
+def get_text_from_image(image, stderr=None,
+                        psm=3, lang="eng", tessdata_dir_path=None,
                         user_words_path=None, user_patterns_path=None,
                         config_name=None, **config_variables):
     """Uses tesseract to get single line from an image
     
-    The arguments mirror the official command line's usage. A list of
-    the command line options can be found here:
+    Outside of image and stderr, the arguments mirror the official 
+    command line's usage. A list of the command line options can be found here:
     https://tesseract-ocr.googlecode.com/svn/trunk/doc/tesseract.1.html
 
     Args:
         image (Image.Image): The image to find text from.
-        psm (int): Page Segmentation Mode. Limits Tesseracts layout
-            analysis (see the Tesseract docs). Default is full page analysis.
-        lang (unicode): The language to use. Default is English.
-        tessdata_dir_path (unicode): The path to the tessdata directory.
-        user_words_path (unicode): The path to user words file.
-        user_patterns_path (unicode): The path to the user patterns file.
-        config_name (unicode): The name of a config file.
+        stderr (Optional[file]): The file like object (impliments `write`) 
+            the tesseract stderr stream will write to. Defaults to None. 
+            You can set it to sys.stdin to see all output easily.
+        psm (Optional[int]): Page Segmentation Mode. Limits Tesseracts layout
+            analysis (see the Tesseract docs). Default is 3, full analysis.
+        lang (Optional[unicode]): The language to use. Default is 'eng' for
+            English.
+        tessdata_dir_path (Optional[unicode]): The path to the tessdata 
+            directory.
+        user_words_path (Optional[unicode]): The path to user words file.
+        user_patterns_path (Optional[unicode]): The path to the user 
+            patterns file.
+        config_name (Optional[unicode]): The name of a config file.
         **config_variables: The config variables for tesseract.
             A list of config variables can be found here:
             http://www.sk-spell.sk.cx/tesseract-ocr-parameters-in-302-version
@@ -95,7 +99,8 @@ def get_text_from_image(image, psm=3, lang="eng", tessdata_dir_path=None,
     pipe.stdin.close()
     text = pipe.stdout.read()
     error = pipe.stderr.read()
-    if error and tesseract_stderr is not None:
-        tesseract_stderr.write(error)
+    if error and stderr is not None:
+        stderr.write(error)
     text =  unicode(text, "utf-8", errors="ignore")
+    text = text.rstrip(u'\r\n ')
     return text
