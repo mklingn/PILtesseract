@@ -2,7 +2,7 @@
 
 Attributes:
     tesseract_dir_path (unicode): The path to the tesseract install directory.
-    tesseract_stderr (): Where to pipe tesseract stderr stream. Defaults to
+    tesseract_stderr (file object): Where to pipe tesseract stderr stream. Defaults to
         sys.stdin. If None, errors are ignored.
 
 """
@@ -15,20 +15,6 @@ from PIL import Image
 #If tesseract binary is not on os.environ["PATH"] the put the path below.
 tesseract_dir_path = ""
 tesseract_stderr = sys.stdout
-
-
-#variables for finding and setting up the paths for the tesseract binary
-_tesseract_bin_path = 'tesseract'
-_tess_cwd = None
-_tess_env = None
-if tesseract_dir_path:
-    _tesseract_bin_path = os.path.join(tesseract_dir_path, 'tesseract')
-    _tess_cwd = tesseract_dir_path
-    _tess_env = {'path': tesseract_dir_path}
-#So console window does not popup
-_console_startup_info = subprocess.STARTUPINFO()
-_console_startup_info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-_console_startup_info.wShowWindow = subprocess.SW_HIDE
 
 
 def get_text_from_image(image, psm=3, lang="eng", tessdata_dir_path=None,
@@ -48,6 +34,7 @@ def get_text_from_image(image, psm=3, lang="eng", tessdata_dir_path=None,
         tessdata_dir_path (unicode): The path to the tessdata directory.
         user_words_path (unicode): The path to user words file.
         user_patterns_path (unicode): The path to the user patterns file.
+        config_name (unicode): The name of a config file.
         **config_variables: The config variables for tesseract.
             A list of config variables can be found here:
             http://www.sk-spell.sk.cx/tesseract-ocr-parameters-in-302-version
@@ -72,7 +59,14 @@ def get_text_from_image(image, psm=3, lang="eng", tessdata_dir_path=None,
     if not isinstance(image, Image.Image):
         raise ValueError("image must be of type Image, not {}."
                          "".format(type(image)))
-    bin_path = _tesseract_bin_path
+    #process environment variables
+    bin_path = 'tesseract'
+    tess_cwd = None
+    tess_env = None
+    if tesseract_dir_path:
+        bin_path = os.path.join(tesseract_dir_path, 'tesseract')
+        tess_cwd = tesseract_dir_path
+        tess_env = {'path': tesseract_dir_path}
     image_input = "stdin"
     commands = ["{} {} stdout -psm {} -l {}".format(bin_path, image_input, psm, lang)]
     if tessdata_dir_path is not None:
@@ -86,12 +80,16 @@ def get_text_from_image(image, psm=3, lang="eng", tessdata_dir_path=None,
     if config_name is not None:
         commands.append(config_name)
     command = ' '.join(commands)
+    #So console window does not popup
+    console_startup_info = subprocess.STARTUPINFO()
+    console_startup_info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    console_startup_info.wShowWindow = subprocess.SW_HIDE
     pipe = subprocess.Popen(
         command,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
-        cwd=_tess_cwd,
-        env=_tess_env,
-        startupinfo=_console_startup_info,
+        cwd=tess_cwd,
+        env=tess_env,
+        startupinfo=console_startup_info,
         )
     image.save(pipe.stdin, format='bmp')
     pipe.stdin.close()

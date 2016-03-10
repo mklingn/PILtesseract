@@ -24,5 +24,7 @@ Examples:
             )
 
 """
+import sys
 from tesseractwrapper import get_text_from_image
+
 __all__ = [get_text_from_image]
