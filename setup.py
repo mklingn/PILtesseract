@@ -1,13 +1,15 @@
 #!/usr/bin/env python
-from setuptools import setup
+import codecs
+import json
 import os
-
+from setuptools import setup
     
+
 modules = ["piltesseract",]
 version_path = os.path.join("piltesseract", "_version.py")
-with open(version_path) as f:
+with codecs.open(version_path) as f:
     version = '.'.join(unicode(e) for e in json.load(f))
-with open('README.md', 'r', 'utf-8') as f:
+with codecs.open('README.md', 'r', 'utf-8') as f:
     readme = f.read()
 
 
@@ -21,6 +23,7 @@ setup(
     download_url = "https://github.com/Digirolamo/PILtesseract",
     license = "MIT License",
     py_modules = modules,
+    test_suite='tests',
     data_files=[('', ['LICENSE'])],
     install_requires=['six>=1.8.0'],
     classifiers=[
