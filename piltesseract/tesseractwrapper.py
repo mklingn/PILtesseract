@@ -47,17 +47,25 @@ def get_text_from_image(image, stderr=None,
         unicode: The parsed text.
 
     Examples:
-        >>> print(get_text_from_image(stop_sign))
-        'Stop'
-        >>> print(get_text_from_image(stop_sign), psm=10)  #single character
-        'S'
+        Examples assume "image" is a picture of the text "ABC123". 
+        See piltesseract tests for working code.
 
-        Without a config file, you can set config variables using optional keywords.
+        >>> get_text_from_image(image)
+        'ABC123'
+        >>> get_text_from_image(image, psm=10)  #single character psm
+        'A'
+
+        You can use tesseract's default configs or your own:
+        >>> get_text_from_image(image, config_name='digits')
+        '13123'
+
+        Without a config file, you can set config variables using optional keywords:
         >>> text = get_text_from_image(
-                stop_sign,
+                image,
+                tessedit_char_whitelist='1'
                 tessedit_ocr_engine_mode=1,  #cube mode enum found in Tesseract-OCR docs
-                cube_debug_level=1
                 )
+        '1  11 '
 
     """
     if not isinstance(image, Image.Image):

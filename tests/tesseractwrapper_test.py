@@ -1,9 +1,4 @@
-"""This module contains all of the tesseract wrapping and image-to-text code.
-
-Attributes:
-    tesseract_dir_path (unicode): The path to the tesseract install directory.
-    tesseract_stderr (file object): Where to pipe tesseract stderr stream. Defaults to
-        sys.stdin. If None, errors are ignored.
+"""This module contains image-to-text tests and helper functions.
 
 """
 import difflib
@@ -25,7 +20,7 @@ def get_test_image(image_name):
         Image.Image: The PIL Image instance.
 
     """
-    test_dir = 'tests'
+    test_dir = "tests"
     image_path = os.path.join(test_dir, image_name)
     assert os.path.exists(image_path)
     image = Image.open(image_path)
@@ -79,9 +74,37 @@ def check_similarity_ratio(parsed_text, actual_text, threshold_ratio=IMAGE_RATIO
 
 
 class TesserTestCase(TestCase):
-    def runTest(self):
+    def test_blank_image(self):
+        blank_image = Image.new("RGB", (100,100), color=(255, 255, 255))
+        text = get_text_from_image(blank_image)
+        assert isinstance(text, unicode)
+        assert len(text) == 0
+
+    def test_simple_sentence(self):
         actual_text = "The quick brown fox jumps over the lazy dog"
         quick_fox_image = get_test_image('quickfox.png')
         text = get_text_from_image(quick_fox_image)
         assert isinstance(text, unicode)
         assert check_similarity_ratio(text, actual_text)
+
+    def test_configs(self):
+        allowed_chars = "0123456789-"
+        white_list_set = set(allowed_chars)
+        alphanum_image = get_test_image('alphanumeric.png')
+        #default with alphas
+        text = get_text_from_image(alphanum_image)
+        assert isinstance(text, unicode)
+        assert not all(char in white_list_set for char in text if char != ' ')
+        #digits config file
+        text = get_text_from_image(alphanum_image, config_name='digits')
+        assert isinstance(text, unicode)
+        assert all(char in white_list_set for char in text if char != ' ')
+        #manual config
+        allowed_chars = "123"
+        white_list_set = set(allowed_chars)
+        text = get_text_from_image(
+            alphanum_image,
+            tessedit_char_whitelist=allowed_chars,
+            )
+        assert isinstance(text, unicode)
+        assert all(char in white_list_set for char in text if char != ' ')
