@@ -1,4 +1,4 @@
-"""The piltesseract module is a Tesseract-OCR wrapper.
+"""The piltesseract module is a Tesseract-OCR command line wrapper.
 
 This module allows quick conversion of PIL Image.Image instances to text using
 Tesseract-OCR.
@@ -9,11 +9,19 @@ Note:
 
 Examples:
     >>> from piltesseract import get_text_from_image
-    >>> image = Image.open("stop_sign.png"
+    >>> image = Image.open("stop_sign.png")
+
     >>> print(get_text_from_image(stop_sign))
     'Stop'
     >>> print(get_text_from_image(stop_sign), psm=10)  #single character
     'S'
+
+    Without a config file, you can set config variables using optional keywords.
+    >>> text = get_text_from_image(
+            stop_sign,
+            tessedit_ocr_engine_mode=1,  #cube mode enum found in Tesseract-OCR docs
+            cube_debug_level=1
+            )
 
 Attributes:
     tesseract_dir_path (unicode): The path to the tesseract install directory.
@@ -25,6 +33,7 @@ import os
 import subprocess
 import sys
 from PIL import Image
+
 
 #If tesseract binary is not on os.environ["PATH"] the put the path below.
 tesseract_dir_path = ""
@@ -50,7 +59,8 @@ def get_text_from_image(image, psm=3, lang="eng", tessdata_dir_path=None,
                         config_name=None, **config_variables):
     """Uses tesseract to get single line from an image
     
-    The arguments mirror the official command line's usage. See
+    The arguments mirror the official command line's usage. A list of
+    the command line options can be found here:
     https://tesseract-ocr.googlecode.com/svn/trunk/doc/tesseract.1.html
 
     Args:
@@ -62,9 +72,24 @@ def get_text_from_image(image, psm=3, lang="eng", tessdata_dir_path=None,
         user_words_path (unicode): The path to user words file.
         user_patterns_path (unicode): The path to the user patterns file.
         **config_variables: The config variables for tesseract.
+            A list of config variables can be found here:
+            http://www.sk-spell.sk.cx/tesseract-ocr-parameters-in-302-version
 
     Returns:
         unicode: The parsed text.
+
+    Examples:
+        >>> print(get_text_from_image(stop_sign))
+        'Stop'
+        >>> print(get_text_from_image(stop_sign), psm=10)  #single character
+        'S'
+
+        Without a config file, you can set config variables using optional keywords.
+        >>> text = get_text_from_image(
+                stop_sign,
+                tessedit_ocr_engine_mode=1,  #cube mode enum found in Tesseract-OCR docs
+                cube_debug_level=1
+                )
 
     """
     if not isinstance(image, Image.Image):
