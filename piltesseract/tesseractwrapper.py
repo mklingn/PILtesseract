@@ -16,10 +16,10 @@ import six
 
 
 #If tesseract binary is not on os.environ["PATH"] the put the path below.
-tesseract_dir_path = ""
+TESSERACT_DIR = ""
 
 
-def get_text_from_image(image, stderr=None,
+def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
                         psm=3, lang="eng", tessdata_dir_path=None,
                         user_words_path=None, user_patterns_path=None,
                         config_name=None, **config_variables):
@@ -30,7 +30,10 @@ def get_text_from_image(image, stderr=None,
     https://tesseract-ocr.googlecode.com/svn/trunk/doc/tesseract.1.html
 
     Args:
-        image (Image.Image): The image to find text from.
+        image (Image.Image or str): The image to find text from.
+        tesseract_dir_path (Optional[str]): The path to the directory 
+            with the tesseract binary. Defaults to "", which works if the 
+            binary is on the environmental PATH variable.
         stderr (Optional[file]): The file like object (impliments `write`) 
             the tesseract stderr stream will write to. Defaults to None. 
             You can set it to sys.stdin to see all output easily.
@@ -76,16 +79,8 @@ def get_text_from_image(image, stderr=None,
     if not isinstance(image, Image.Image):
         raise ValueError("image must be of type Image, not {}."
                          "".format(type(image)))
-    #process environment variables
-    bin_path = 'tesseract'
-    tess_cwd = None
-    tess_env = None
-    if tesseract_dir_path:
-        bin_path = os.path.join(tesseract_dir_path, 'tesseract')
-        tess_cwd = tesseract_dir_path
-        tess_env = {'path': tesseract_dir_path}
     image_input = "stdin"
-    commands = ["{} {} stdout -psm {} -l {}".format(bin_path, image_input, psm, lang)]
+    commands = ["{} stdout -psm {} -l {}".format(image_input, psm, lang)]
     if tessdata_dir_path is not None:
         commands.append('--tessdata-dir"{}"'.format(tessdata_dir_path))
     if user_words_path is not None:
@@ -97,6 +92,44 @@ def get_text_from_image(image, stderr=None,
     if config_name is not None:
         commands.append(config_name)
     command = ' '.join(commands)
+    pipe = get_tesseract_pipe(command, tesseract_dir_path=tesseract_dir_path)
+    image.save(pipe.stdin, format='bmp')
+    pipe.stdin.close()
+    text = pipe.stdout.read()
+    error = pipe.stderr.read()
+    if error and stderr is not None:
+        stderr.write(error)
+    text =  six.text_type(text, "utf-8", errors="ignore")
+    text = text.rstrip('\r\n ')
+    return text
+
+
+def get_tesseract_pipe(command, tesseract_dir_path=TESSERACT_DIR):
+    """Opens and returns a pipe to the tesseract command line utility.
+
+    Uses popen to open a pipe to tesseract.
+
+    Args:
+        command (str): The command line string passed into the tesseract 
+            binary. Do not include the binary name or path in this variable.
+        tesseract_dir_path (Optional[str]): The path to the directory 
+            with the tesseract binary. Defaults to "", which works if the 
+            binary is on the environmental PATH variable.
+
+    Returns:
+        subprocess.Popen: The open subprocess pipe.
+
+    """
+    #process environment variables
+    if tesseract_dir_path == "":
+        bin_path = 'tesseract'
+        tess_cwd = None
+        tess_env = None
+    else:
+        bin_path = os.path.join(tesseract_dir_path, 'tesseract')
+        tess_cwd = tesseract_dir_path
+        tess_env = {'path': tesseract_dir_path}
+    command = '{} {}'.format(bin_path, command)
     #So console window does not popup
     console_startup_info = subprocess.STARTUPINFO()
     console_startup_info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
@@ -108,12 +141,4 @@ def get_text_from_image(image, stderr=None,
         env=tess_env,
         startupinfo=console_startup_info,
         )
-    image.save(pipe.stdin, format='bmp')
-    pipe.stdin.close()
-    text = pipe.stdout.read()
-    error = pipe.stderr.read()
-    if error and stderr is not None:
-        stderr.write(error)
-    text =  six.text_type(text, "utf-8", errors="ignore")
-    text = text.rstrip('\r\n ')
-    return text
+    return pipe
