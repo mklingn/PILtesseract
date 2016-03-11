@@ -1,11 +1,16 @@
 """This module contains image-to-text tests and helper functions.
 
 """
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+from __future__ import unicode_literals
 import difflib
 import os
 import sys
 from unittest import TestCase, TestSuite, TextTestRunner
 from PIL import Image
+import six
 from piltesseract import get_text_from_image
 
 
@@ -75,36 +80,36 @@ def check_similarity_ratio(parsed_text, actual_text, threshold_ratio=IMAGE_RATIO
 
 class TesserTestCase(TestCase):
     def test_blank_image(self):
-        blank_image = Image.new("RGB", (100,100), color=(255, 255, 255))
-        text = get_text_from_image(blank_image)
-        assert isinstance(text, unicode)
+        with Image.new("RGB", (100,100), color=(255, 255, 255)) as blank_image:
+            text = get_text_from_image(blank_image)
+        assert isinstance(text, six.text_type)
         assert len(text) == 0
 
     def test_simple_sentence(self):
         actual_text = "The quick brown fox jumps over the lazy dog"
-        quick_fox_image = get_test_image('quickfox.png')
-        text = get_text_from_image(quick_fox_image)
-        assert isinstance(text, unicode)
+        with get_test_image('quickfox.png') as quick_fox_image:
+            text = get_text_from_image(quick_fox_image)
+        assert isinstance(text, six.text_type)
         assert check_similarity_ratio(text, actual_text)
 
     def test_configs(self):
         allowed_chars = "0123456789-"
         white_list_set = set(allowed_chars)
-        alphanum_image = get_test_image('alphanumeric.png')
-        #default with alphas
-        text = get_text_from_image(alphanum_image)
-        assert isinstance(text, unicode)
-        assert not all(char in white_list_set for char in text if char != ' ')
-        #digits config file
-        text = get_text_from_image(alphanum_image, config_name='digits')
-        assert isinstance(text, unicode)
-        assert all(char in white_list_set for char in text if char != ' ')
-        #manual config
-        allowed_chars = "123"
-        white_list_set = set(allowed_chars)
-        text = get_text_from_image(
-            alphanum_image,
-            tessedit_char_whitelist=allowed_chars,
-            )
-        assert isinstance(text, unicode)
-        assert all(char in white_list_set for char in text if char != ' ')
+        with get_test_image('alphanumeric.png') as alphanum_image:
+            #default with alphas
+            text = get_text_from_image(alphanum_image)
+            assert isinstance(text, six.text_type)
+            assert not all(char in white_list_set for char in text if char != ' ')
+            #digits config file
+            text = get_text_from_image(alphanum_image, config_name='digits')
+            assert isinstance(text, six.text_type)
+            assert all(char in white_list_set for char in text if char != ' ')
+            #manual config
+            allowed_chars = "123"
+            white_list_set = set(allowed_chars)
+            text = get_text_from_image(
+                alphanum_image,
+                tessedit_char_whitelist=allowed_chars,
+                )
+            assert isinstance(text, six.text_type)
+            assert all(char in white_list_set for char in text if char != ' ')
