@@ -27,8 +27,9 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
                         config_name=None, **config_variables):
     """Uses tesseract to get single line from an image.
     
-    Outside of image and stderr, the arguments mirror the official 
-    command line's usage. A list of the command line options can be found here:
+    Outside of image, tesseract_dir_path, and stderr, the arguments mirror 
+    the official command line's usage. A list of the command line options 
+    can be found here:
     https://tesseract-ocr.googlecode.com/svn/trunk/doc/tesseract.1.html
 
     Args:
@@ -91,7 +92,8 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
     else:
         raise ValueError("image argument type not supported: {}."
                          "".format(type(image)))
-    commands = ["{} stdout -psm {} -l {}".format(image_input, psm, lang)]
+    command_start = "{} stdout -psm {} -l {}".format(image_input, psm, lang)
+    commands = command_start.split(' ')
     if tessdata_dir_path is not None:
         commands.append('--tessdata-dir"{}"'.format(tessdata_dir_path))
     if user_words_path is not None:
@@ -99,11 +101,11 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
     if user_patterns_path is not None:
         commands.append('--user-patterns"{}"'.format(user_patterns_path))
     for config_var, value in config_variables.items():
-        commands.append('-c {}={}'.format(config_var, value))
+        commands += ['-c', '{}={}'.format(config_var, value)]
     if config_name is not None:
         commands.append(config_name)
-    command = ' '.join(commands)
-    pipe = get_tesseract_pipe(command, tesseract_dir_path=tesseract_dir_path)
+    #command = ' '.join(commands)
+    pipe = get_tesseract_pipe(commands, tesseract_dir_path=tesseract_dir_path)
     if use_stdin:
         image.save(pipe.stdin, format='bmp')
         pipe.stdin.close()
@@ -116,13 +118,13 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
     return text
 
 
-def get_tesseract_pipe(command, tesseract_dir_path=TESSERACT_DIR):
+def get_tesseract_pipe(commands, tesseract_dir_path=TESSERACT_DIR):
     """Opens and returns a pipe to the tesseract command line utility.
 
     Uses popen to open a pipe to tesseract.
 
     Args:
-        command (str): The command line string passed into the tesseract 
+        commands (st[str]): The command line strings passed into the tesseract 
             binary. Do not include the binary name or path in this variable.
         tesseract_dir_path (Optional[str]): The path to the directory 
             with the tesseract binary. Defaults to "", which works if the 
@@ -141,13 +143,16 @@ def get_tesseract_pipe(command, tesseract_dir_path=TESSERACT_DIR):
         bin_path = os.path.join(tesseract_dir_path, 'tesseract')
         tess_cwd = tesseract_dir_path
         tess_env = {'path': tesseract_dir_path}
-    command = '{} {}'.format(bin_path, command)
-    #So console window does not popup
-    console_startup_info = subprocess.STARTUPINFO()
-    console_startup_info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-    console_startup_info.wShowWindow = subprocess.SW_HIDE
+    commands.insert(0, bin_path)
+    #So console window does not popup on windows
+    if not hasattr(subprocess, "STARTUPINFO"):
+        console_startup_info = None
+    else:
+        console_startup_info = subprocess.STARTUPINFO()
+        console_startup_info.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        console_startup_info.wShowWindow = subprocess.SW_HIDE
     pipe = subprocess.Popen(
-        command,
+        commands,
         stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         cwd=tess_cwd,
         env=tess_env,
