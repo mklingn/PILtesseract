@@ -1,8 +1,11 @@
 """This module contains all of the tesseract wrapping and image-to-text code.
 
 Attributes:
-    TESSERACT_DIR (unicode): The default path to the tesseract install 
+    TESSERACT_DIR (str): The default path to the tesseract install 
         directory.
+    DEFAULT_FORMAT (str): The default image format to send to tesseract 
+        if an image doesn't not have a declared format. Otherwise, try
+        to use the former format if we can.
 
 """
 from __future__ import absolute_import
@@ -10,6 +13,7 @@ from __future__ import division
 from __future__ import print_function
 from __future__ import unicode_literals
 import os
+import platform
 import subprocess
 import sys
 from PIL import Image
@@ -19,6 +23,10 @@ import six
 #If tesseract binary is not on os.environ["PATH"] either the put the path below
 #or use the optional tesseract_dir_path of the functions below.
 TESSERACT_DIR = ""
+DEFAULT_FORMAT = "BMP"
+
+
+_IS_WINDOWS = platform.system() == "Windows"
 
 
 def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
@@ -104,10 +112,15 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         commands += ['-c', '{}={}'.format(config_var, value)]
     if config_name is not None:
         commands.append(config_name)
-    #command = ' '.join(commands)
     pipe = get_tesseract_pipe(commands, tesseract_dir_path=tesseract_dir_path)
     if use_stdin:
-        image.save(pipe.stdin, format='bmp')
+        # tesseract doesn't seem to play nice with stdin on many formats
+        # on windows.
+        if _IS_WINDOWS or not image.format:
+            image_format = DEFAULT_FORMAT
+        else:
+            image_format = image.format
+        image.save(pipe.stdin, format=image_format)
         pipe.stdin.close()
     text = pipe.stdout.read()
     error = pipe.stderr.read()
