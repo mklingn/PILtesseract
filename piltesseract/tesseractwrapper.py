@@ -1,7 +1,8 @@
 """This module contains all of the tesseract wrapping and image-to-text code.
 
 Attributes:
-    tesseract_dir_path (unicode): The path to the tesseract install directory.
+    TESSERACT_DIR (unicode): The default path to the tesseract install 
+        directory.
 
 """
 from __future__ import absolute_import
@@ -15,7 +16,8 @@ from PIL import Image
 import six
 
 
-#If tesseract binary is not on os.environ["PATH"] the put the path below.
+#If tesseract binary is not on os.environ["PATH"] either the put the path below
+#or use the optional tesseract_dir_path of the functions below.
 TESSERACT_DIR = ""
 
 
@@ -30,7 +32,8 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
     https://tesseract-ocr.googlecode.com/svn/trunk/doc/tesseract.1.html
 
     Args:
-        image (Image.Image or str): The image to find text from.
+        image (Image.Image or str): The image to find text from or a path to
+            that image.
         tesseract_dir_path (Optional[str]): The path to the directory 
             with the tesseract binary. Defaults to "", which works if the 
             binary is on the environmental PATH variable.
@@ -76,10 +79,18 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         '1  11 '
 
     """
-    if not isinstance(image, Image.Image):
-        raise ValueError("image must be of type Image, not {}."
+    if isinstance(image, Image.Image):
+        image_input = "stdin"
+        use_stdin = True
+    elif isinstance(image, six.text_type):
+        image_input = image
+        use_stdin = False
+        if not os.path.exists(image_input):
+            raise ValueError("Image file does not exist: {}"
+                             "".format(image_input))
+    else:
+        raise ValueError("image argument type not supported: {}."
                          "".format(type(image)))
-    image_input = "stdin"
     commands = ["{} stdout -psm {} -l {}".format(image_input, psm, lang)]
     if tessdata_dir_path is not None:
         commands.append('--tessdata-dir"{}"'.format(tessdata_dir_path))
@@ -93,12 +104,13 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         commands.append(config_name)
     command = ' '.join(commands)
     pipe = get_tesseract_pipe(command, tesseract_dir_path=tesseract_dir_path)
-    image.save(pipe.stdin, format='bmp')
-    pipe.stdin.close()
+    if use_stdin:
+        image.save(pipe.stdin, format='bmp')
+        pipe.stdin.close()
     text = pipe.stdout.read()
     error = pipe.stderr.read()
     if error and stderr is not None:
-        stderr.write(error)
+        stderr.write(six.text_type(error))
     text =  six.text_type(text, "utf-8", errors="ignore")
     text = text.rstrip('\r\n ')
     return text

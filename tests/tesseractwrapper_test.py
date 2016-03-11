@@ -18,6 +18,19 @@ from piltesseract import get_text_from_image
 IMAGE_RATIO_THRESHOLD = 0.8
 
 
+def get_test_image_path(image_name):
+    """Gets the test image path from the test folder.
+    
+    Returns:
+        str: The image path.
+
+    """
+    test_dir = "tests"
+    image_path = os.path.join(test_dir, image_name)
+    assert os.path.exists(image_path)
+    return image_path
+
+
 def get_test_image(image_name):
     """Gets the test image from the test folder.
     
@@ -26,8 +39,7 @@ def get_test_image(image_name):
 
     """
     test_dir = "tests"
-    image_path = os.path.join(test_dir, image_name)
-    assert os.path.exists(image_path)
+    image_path = get_test_image_path(image_name)
     image = Image.open(image_path)
     return image
 
@@ -87,8 +99,22 @@ class TesserTestCase(TestCase):
 
     def test_simple_sentence(self):
         actual_text = "The quick brown fox jumps over the lazy dog"
+        with get_test_image('quickfox.bmp') as quick_fox_image:
+            text = get_text_from_image(quick_fox_image)
+        assert isinstance(text, six.text_type)
+        assert check_similarity_ratio(text, actual_text)
+
+    def test_simple_sentence_png(self):
+        actual_text = "The quick brown fox jumps over the lazy dog"
         with get_test_image('quickfox.png') as quick_fox_image:
             text = get_text_from_image(quick_fox_image)
+        assert isinstance(text, six.text_type)
+        assert check_similarity_ratio(text, actual_text)
+
+    def test_simple_sentence_from_file(self):
+        actual_text = "The quick brown fox jumps over the lazy dog"
+        image_path = get_test_image_path('quickfox.bmp')
+        text = get_text_from_image(image_path)
         assert isinstance(text, six.text_type)
         assert check_similarity_ratio(text, actual_text)
 
