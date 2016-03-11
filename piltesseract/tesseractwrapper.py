@@ -33,7 +33,7 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
                         psm=3, lang="eng", tessdata_dir_path=None,
                         user_words_path=None, user_patterns_path=None,
                         config_name=None, **config_variables):
-    """Uses tesseract to get single line from an image.
+    """Uses tesseract to get text from an image.
     
     Outside of image, tesseract_dir_path, and stderr, the arguments mirror 
     the official command line's usage. A list of the command line options 
@@ -46,7 +46,7 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         tesseract_dir_path (Optional[str]): The path to the directory 
             with the tesseract binary. Defaults to "", which works if the 
             binary is on the environmental PATH variable.
-        stderr (Optional[file]): The file like object (impliments `write`) 
+        stderr (Optional[file]): The file like object (implements `write`) 
             the tesseract stderr stream will write to. Defaults to None. 
             You can set it to sys.stdin to see all output easily.
         psm (Optional[int]): Page Segmentation Mode. Limits Tesseracts layout
@@ -76,10 +76,12 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         'A'
 
         You can use tesseract's default configs or your own:
+
         >>> get_text_from_image(image, config_name='digits')
         '13123'
 
         Without a config file, you can set config variables using optional keywords:
+
         >>> text = get_text_from_image(
                 image,
                 tessedit_char_whitelist='1'
@@ -137,7 +139,7 @@ def get_tesseract_pipe(commands, tesseract_dir_path=TESSERACT_DIR):
     Uses popen to open a pipe to tesseract.
 
     Args:
-        commands (st[str]): The command line strings passed into the tesseract 
+        commands (List[str]): The command line strings passed into the tesseract 
             binary. Do not include the binary name or path in this variable.
         tesseract_dir_path (Optional[str]): The path to the directory 
             with the tesseract binary. Defaults to "", which works if the 
