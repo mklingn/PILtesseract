@@ -118,6 +118,15 @@ class TesserTestCase(TestCase):
         assert isinstance(text, six.text_type)
         assert check_similarity_ratio(text, actual_text)
 
+    def test_options(self):
+        with get_test_image('quickfox.png') as quick_fox_image:
+            text = get_text_from_image(
+                quick_fox_image, 
+                psm=10  #single character
+                )
+        assert isinstance(text, six.text_type)
+        assert len(text) == 1
+
     def test_configs(self):
         allowed_chars = "0123456789-"
         white_list_set = set(allowed_chars)
