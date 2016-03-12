@@ -67,6 +67,10 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
     Returns:
         str: The parsed text.
 
+    Raises:
+        subprocess.CalledProcessError: If the tesseract exit status is 
+            not a success. 
+        
     Examples:
         Examples assume "image" is a picture of the text "ABC123". 
         See piltesseract tests for working code.
@@ -115,8 +119,13 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         commands += ['-c', '{}={}'.format(config_var, value)]
     if config_name is not None:
         commands.append(config_name)
-    pipe = get_tesseract_process(commands, tesseract_dir_path=tesseract_dir_path)
-    if use_stdin:
+    if not use_stdin:
+        pipe = get_tesseract_process(
+            commands, tesseract_dir_path=tesseract_dir_path,
+            stdin=None
+            )
+    else:
+        pipe = get_tesseract_process(commands, tesseract_dir_path=tesseract_dir_path)
         # tesseract doesn't seem to play nice with stdin on many formats
         # on windows.
         if _IS_WINDOWS or not image.format:
@@ -127,7 +136,13 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         pipe.stdin.close()
     text = pipe.stdout.read()
     error = pipe.stderr.read()
-    if error and stderr is not None:
+    pipe.terminate()
+    if pipe.returncode != 0:
+        msg = "get_text_from_image failed while calling tesseract."
+        if error:
+            msg += ' tesseract stderr: "{}".'.format(error)
+        raise subprocess.CalledProcessError(msg)
+    elif error and stderr is not None:
         stderr.write(six.text_type(error))
     text =  six.text_type(text, "utf-8", errors="ignore")
     text = text.rstrip('\r\n ')
