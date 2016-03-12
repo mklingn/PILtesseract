@@ -15,6 +15,7 @@ from __future__ import unicode_literals
 import os
 import platform
 import subprocess
+from subprocess import PIPE
 import sys
 from PIL import Image
 import six
@@ -114,7 +115,7 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         commands += ['-c', '{}={}'.format(config_var, value)]
     if config_name is not None:
         commands.append(config_name)
-    pipe = get_tesseract_pipe(commands, tesseract_dir_path=tesseract_dir_path)
+    pipe = get_tesseract_process(commands, tesseract_dir_path=tesseract_dir_path)
     if use_stdin:
         # tesseract doesn't seem to play nice with stdin on many formats
         # on windows.
@@ -133,10 +134,12 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
     return text
 
 
-def get_tesseract_pipe(commands, tesseract_dir_path=TESSERACT_DIR):
-    """Opens and returns a pipe to the tesseract command line utility.
-
-    Uses popen to open a pipe to tesseract.
+def get_tesseract_process(commands, tesseract_dir_path=TESSERACT_DIR,
+                      stdin=PIPE, stdout=PIPE, stderr=PIPE):
+    """Popen and return tesseract command line utility.
+    
+    Opens and returns a tesseract process to the tesseract command line 
+    utility. Uses Popen to open a process and pipes to tesseract.
 
     Args:
         commands (List[str]): The command line strings passed into the tesseract 
@@ -157,7 +160,8 @@ def get_tesseract_pipe(commands, tesseract_dir_path=TESSERACT_DIR):
     else:
         bin_path = os.path.join(tesseract_dir_path, 'tesseract')
         tess_cwd = tesseract_dir_path
-        tess_env = {'path': tesseract_dir_path}
+        #str because python 2 enforces no unicode and 3 defaults to it... bizarre
+        tess_env = {str('PATH'): str(tesseract_dir_path)}
     commands.insert(0, bin_path)
     #So console window does not popup on windows
     if not hasattr(subprocess, "STARTUPINFO"):
@@ -168,7 +172,7 @@ def get_tesseract_pipe(commands, tesseract_dir_path=TESSERACT_DIR):
         console_startup_info.wShowWindow = subprocess.SW_HIDE
     pipe = subprocess.Popen(
         commands,
-        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        stdin=stdin, stdout=stdout, stderr=stderr,
         cwd=tess_cwd,
         env=tess_env,
         startupinfo=console_startup_info,
