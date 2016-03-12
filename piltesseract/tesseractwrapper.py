@@ -178,3 +178,38 @@ def get_tesseract_process(commands, tesseract_dir_path=TESSERACT_DIR,
         startupinfo=console_startup_info,
         )
     return pipe
+
+
+def test_tesseract_path_version(tesseract_dir_path=TESSERACT_DIR):
+    """Tests that the correct version tesseract is installed and on the path.
+    
+    Use this function to ensure that either tesseract is on a default or 
+    specified path. The function raises ImportErrors if tesseract does not work
+    or is not the right version. The function is silent if everything passes.
+    
+    Args:
+        tesseract_dir_path (Optional[str]): The path to the directory 
+            with the tesseract binary. Defaults to "", which works if the 
+            binary is on the environmental PATH variable.
+    
+    Raises:
+        ImportError: If the tesseract requirement is not met.
+    
+    """
+    minimum_version = (3, 3, 0)
+    try:
+        pipe = get_tesseract_process(
+            ['-v'], tesseract_dir_path=tesseract_dir_path,
+            stdin=None, stderr=subprocess.STDOUT)
+        output = pipe.stdout.readline()
+        pipe.terminate()
+        version_string = ''.join(c for c in output if c.isdigit() or c == '.')
+        version_tuple = tuple(int(c) for c in version_string.split('.'))
+        if minimum_version > version_tuple:
+            raise ImportError("You have an older version of Tesseract-OCR. PILtesseract "
+                              "only works with version (3, 3, 0)+. You have version {}."
+                              "".format(version_tuple))
+    except (subprocess.CalledProcessError, WindowsError):
+        raise ImportError("Tesseract-OCR is either not installed, not on the path variable, "
+                          "or the tesseract_dir_path variable is incorrect.\n"
+                          "Please fix this issue before importing piltesseract.")
