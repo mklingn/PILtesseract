@@ -11,7 +11,7 @@ Here is a simple example:
     >>> from PIL import Image
     >>> from piltesseract import get_text_from_image
     >>> image = Image.open('quickfox.png')
-    >>> get_text_from_image()
+    >>> get_text_from_image(image)
     'The quick brown fox jumps over the lazy dog'
 
 See more advanced examples.  
