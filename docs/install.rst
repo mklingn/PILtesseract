@@ -32,7 +32,7 @@ The fork of the Python Image Library ("PIL")
  - Pillow_
   .. _Pillow: https://pillow.readthedocs.org/en/latest/ 
    
-   - ```$ pip install Pillow```
+   - ``$ pip install Pillow``
 
 *Note* The Pillow library installs as PIL, so you import it like:
 ```import PIL```
@@ -45,7 +45,7 @@ Library for python 2 and 3 compatibility
  - Six_
   .. _Six: https://pythonhosted.org/six/
 
-   - ```$ pip install six```
+   - ``$ pip install six``
 
    
 PILtesseract
@@ -53,4 +53,4 @@ PILtesseract
 Finally you can now install this library.
 
  - Installing from pip:
-   - ```$ pip install piltesseract```
+   - ``$ pip install piltesseract``
