@@ -28,13 +28,16 @@ Here is a simple example:
 
 See more [advanced examples/recipes.](http://piltesseract.readthedocs.org/en/latest/recipes.html)
 
-Requirments
+Requirements
 ------------
- - [Pillow](https://pillow.readthedocs.org/en/latest/)
-   - ```$ pip install Pillow```
- - [Tesseract-OCR](https://github.com/tesseract-ocr/tesseract)
+More detailed installation instructions can be found [here](http://piltesseract.readthedocs.org/en/latest/install.html).
+ - [Tesseract-OCR](https://github.com/tesseract-ocr/tesseract): 3.03 or higher
    - First install either from source or from [binaries](https://github.com/tesseract-ocr/tesseract/wiki).
    - Ensure that the tesseract binary folder is on your [PATH](https://en.wikipedia.org/wiki/PATH_(variable)).
+ - [Pillow](https://pillow.readthedocs.org/en/latest/)
+   - ```$ pip install Pillow```
+ - [Six](https://pythonhosted.org/six/)
+   - ```$ pip install six```
 
 Install
 ------------
