@@ -35,7 +35,7 @@ The fork of the Python Image Library ("PIL")
    - ``$ pip install Pillow``
 
 *Note* The Pillow library installs as PIL, so you import it like:
-```import PIL```
+``import PIL``
    
    
 Six
