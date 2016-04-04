@@ -8,6 +8,7 @@ Table of Contents:
 
    ./install.rst
    ./piltesseract.rst
+   ./example.rst
    ./recipes.rst
 
    
