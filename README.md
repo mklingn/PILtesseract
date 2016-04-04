@@ -26,7 +26,8 @@ Here is a simple example:
     >>> get_text_from_image(image)
     'The quick brown fox jumps over the lazy dog'
 
-See more [advanced examples/recipes.](http://piltesseract.readthedocs.org/en/latest/recipes.html)
+See [Advanced Example](http://piltesseract.readthedocs.org/en/latest/example.html)  
+See [Recipes](http://piltesseract.readthedocs.org/en/latest/recipes.html)
 
 Requirements
 ------------
