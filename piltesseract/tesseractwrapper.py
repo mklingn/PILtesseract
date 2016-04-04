@@ -21,13 +21,17 @@ from PIL import Image
 import six
 
 
+_IS_WINDOWS = platform.system() == "Windows"
+if _IS_WINDOWS:
+    DEFAULT_FORMAT = "BMP"
+else:
+    DEFAULT_FORMAT = "PNG"
+
+
 #If tesseract binary is not on os.environ["PATH"] either the put the path below
 #or use the optional tesseract_dir_path of the functions below.
 TESSERACT_DIR = ""
-DEFAULT_FORMAT = "BMP"
 
-
-_IS_WINDOWS = platform.system() == "Windows"
 
 
 def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
@@ -132,16 +136,21 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
             image_format = DEFAULT_FORMAT
         else:
             image_format = image.format
+        # Only RGBA supported format is PNG I believe.
+        if image.mode == "RGBA":
+            new_image = Image.new(mode='RGB', size=image.size, color=(255, 255, 255))
+            image = new_image.paste(new_image)
         image.save(pipe.stdin, format=image_format)
         pipe.stdin.close()
     text = pipe.stdout.read()
     error = pipe.stderr.read()
     pipe.terminate()
-    if pipe.returncode != 0:
+    return_code = pipe.returncode
+    if return_code != 0:
         msg = "get_text_from_image failed while calling tesseract."
-        if error:
-            msg += ' tesseract stderr: "{}".'.format(error)
-        raise subprocess.CalledProcessError(msg)
+        msg += ' tesseract stdout: "{}".'.format(text)
+        msg += ' tesseract stderr: "{}".'.format(error)
+        raise subprocess.CalledProcessError(return_code, msg)
     elif error and stderr is not None:
         stderr.write(six.text_type(error))
     text =  six.text_type(text, "utf-8", errors="ignore")
@@ -211,7 +220,7 @@ def test_tesseract_path_version(tesseract_dir_path=TESSERACT_DIR):
         ImportError: If the tesseract requirement is not met.
     
     """
-    minimum_version = (3, 3, 0)
+    minimum_version = (3, 3)
     try:
         pipe = get_tesseract_process(
             ['-v'], tesseract_dir_path=tesseract_dir_path,
@@ -224,7 +233,7 @@ def test_tesseract_path_version(tesseract_dir_path=TESSERACT_DIR):
             raise ImportError("You have an older version of Tesseract-OCR. PILtesseract "
                               "only works with version (3, 3, 0)+. You have version {}."
                               "".format(version_tuple))
-    except (subprocess.CalledProcessError, WindowsError):
+    except (subprocess.CalledProcessError, OSError):
         raise ImportError("Tesseract-OCR is either not installed, not on the path variable, "
                           "or the tesseract_dir_path variable is incorrect.\n"
                           "Please fix this issue before importing piltesseract.")
