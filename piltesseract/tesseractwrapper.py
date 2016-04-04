@@ -139,7 +139,8 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         # Only RGBA supported format is PNG I believe.
         if image.mode == "RGBA":
             new_image = Image.new(mode='RGB', size=image.size, color=(255, 255, 255))
-            image = new_image.paste(new_image)
+            new_image.paste(new_image)
+            image = new_image
         image.save(pipe.stdin, format=image_format)
         pipe.stdin.close()
     text = pipe.stdout.read()
