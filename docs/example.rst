@@ -2,11 +2,11 @@
 Advanced Example
 ================
 
-| In this example we will parse pypi version numbering from images.
-| We will do some manual image preprocessing using PIL.
+In this example we will parse pypi version numbering from images.
 
-You will need to have tesseract on your PATH and already done the
-``pip install`` for both ``piltesseract`` and ``requests``.
+| We will do some manual image preprocessing using PIL.
+| You will need to have tesseract on your PATH and already done the
+  ``pip install`` for both ``piltesseract`` and ``requests``.
 
 .. code:: python
 
@@ -52,10 +52,11 @@ You will need to have tesseract on your PATH and already done the
             PIL.Image: The new scaled image.
            
         """
-        if new_width == image.width:
+        width, height = image.size
+        if new_width == width:
              return copy.copy(image)
-        width_percent = new_width / float(image.width)
-        new_height = int(image.height * width_percent)
+        width_percent = new_width / float(width)
+        new_height = int(height * width_percent)
         new_size = (new_width, new_height)
         image = image.resize(new_size, Image.ANTIALIAS)
         return image
@@ -80,10 +81,13 @@ Now we crop out the information we do not care about.
 .. code:: python
 
     margin_crop = 1
-    left = 33
+    left_crop = 33
+    
+    width, height = pypi_image.size
+    left = left_crop
     upper = margin_crop
-    right = pypi_image.width - margin_crop
-    lower = pypi_image.height - margin_crop
+    right = width - margin_crop
+    lower = height - margin_crop
     crop_box = (left, upper, right, lower)
     
     version_image = pypi_image.crop(box=crop_box)
@@ -96,10 +100,9 @@ Now we crop out the information we do not care about.
 
 
 
-| If we simply get the text at this point, the result will not be very
-  accurate.
-| The size is smaller than desired and the white on orange does not
-  help.
+If we simply get the text at this point, the result will not be very
+accurate. The size is smaller than desired and the white on orange does
+not help.
 
 .. code:: python
 
@@ -139,7 +142,7 @@ scale and smooth the image.
 
 .. code:: python
 
-    width = 100
+    width = 200
     preprocessed_image = scale_image_from_width(version_image, width)
     preprocessed_image = preprocessed_image.filter(ImageFilter.SMOOTH_MORE)
     preprocessed_image
