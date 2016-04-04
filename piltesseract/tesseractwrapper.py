@@ -33,7 +33,6 @@ else:
 TESSERACT_DIR = ""
 
 
-
 def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
                         psm=3, lang="eng", tessdata_dir_path=None,
                         user_words_path=None, user_patterns_path=None,
@@ -72,8 +71,8 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         str: The parsed text.
 
     Raises:
-        subprocess.CalledProcessError: If the tesseract exit status is 
-            not a success. 
+        ValueError: If the tesseract exit status is 
+            not a success. Likely due to invalid commands.
         
     Examples:
         Examples assume "image" is a picture of the text "ABC123". 
@@ -137,21 +136,23 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         else:
             image_format = image.format
         # Only RGBA supported format is PNG I believe.
-        if image.mode == "RGBA":
+        if image.mode == "RGBA" and image_format != "PNG":
             new_image = Image.new(mode='RGB', size=image.size, color=(255, 255, 255))
-            new_image.paste(new_image)
+            new_image.paste(image)
             image = new_image
         image.save(pipe.stdin, format=image_format)
         pipe.stdin.close()
     text = pipe.stdout.read()
     error = pipe.stderr.read()
     pipe.terminate()
+    pipe.wait()
     return_code = pipe.returncode
     if return_code != 0:
-        msg = "get_text_from_image failed while calling tesseract."
-        msg += ' tesseract stdout: "{}".'.format(text)
-        msg += ' tesseract stderr: "{}".'.format(error)
-        raise subprocess.CalledProcessError(return_code, msg)
+        msg = "get_text_from_image failed while calling tesseract.\n"
+        msg += 'Return Code: {}\n'.format(return_code)
+        msg += 'tesseract stdout: "{}"\n'.format(text)
+        msg += 'tesseract stderr: "{}".'.format(error)
+        raise ValueError(msg)
     elif error and stderr is not None:
         stderr.write(six.text_type(error))
     text =  six.text_type(text, "utf-8", errors="ignore")
