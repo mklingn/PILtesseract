@@ -2,7 +2,9 @@ WANDtesseract
 =======
 
 Simple Tesseract wrapper for converting WAND Images to text.
-This is heavily based on [PILtesseract](https://github.com/Digirolamo/PILtesseract) by [Christopher Digirolamo](https://github.com/Digirolamo).
+
+**This is heavily based on [PILtesseract](https://github.com/Digirolamo/PILtesseract) by [Christopher Digirolamo](https://github.com/Digirolamo).**
+
 I merely changed a few lines and the name.
 
 **Warning:** WANDtesseract is intended to only work with tesseract 3.03+,
