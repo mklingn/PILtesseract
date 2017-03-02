@@ -5,9 +5,9 @@ import os
 from setuptools import setup
     
 
-package_name = "piltesseract"
+package_name = "wandtesseract"
 packages  = [package_name,]
-version_path = os.path.join("piltesseract", "_version.py")
+version_path = os.path.join("wandtesseract", "_version.py")
 
 
 with codecs.open(version_path, encoding="utf-8") as f:
@@ -17,14 +17,14 @@ with codecs.open('README.md', 'r', 'utf-8') as f:
 
 
 setup(
-    name = "piltesseract",
+    name = "wandtesseract",
     version=version,
     description = "Image-to-text Tesseract command line wrapper.",
     long_description = readme,
-    author='Christopher Digirolamo',
-    author_email = "chrisdigirolamo@gmail.com",
-    url = "https://github.com/Digirolamo/PILtesseract/",
-    download_url = "https://github.com/Digirolamo/PILtesseract",
+    author='Markus Klingenberger',
+    author_email = "wonderful_spam@gmx.de",
+    url = "https://github.com/mklingn/WANDtesseract/",
+    download_url = "https://github.com/mklingn/WANDtesseract",
     license = "MIT License",
     packages=packages,
     package_data={

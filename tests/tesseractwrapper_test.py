@@ -9,7 +9,7 @@ import difflib
 import os
 import sys
 from unittest import TestCase, TestSuite, TextTestRunner
-from PIL import Image
+from wand.image import Image
 import six
 from piltesseract import get_text_from_image
 
@@ -40,7 +40,7 @@ def get_test_image(image_name):
     """
     test_dir = "tests"
     image_path = get_test_image_path(image_name)
-    image = Image.open(image_path)
+    image = Image(filename=image_path)
     return image
 
 
@@ -91,12 +91,6 @@ def check_similarity_ratio(parsed_text, actual_text, threshold_ratio=IMAGE_RATIO
 
 
 class TesserTestCase(TestCase):
-    def test_blank_image(self):
-        blank_image = Image.new("RGB", (100,100), color=(255, 255, 255))
-        text = get_text_from_image(blank_image)
-        assert isinstance(text, six.text_type)
-        assert len(text) == 0
-
     def test_simple_sentence(self):
         actual_text = "The quick brown fox jumps over the lazy dog"
         quick_fox_image = get_test_image('quickfox.bmp')

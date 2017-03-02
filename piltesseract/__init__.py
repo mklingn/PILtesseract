@@ -1,17 +1,17 @@
-"""The piltesseract package is a simple Tesseract-OCR command line wrapper.
+"""The wandtesseract package is a simple Tesseract-OCR command line wrapper.
 
-piltesseract allows quick conversion of PIL Image.Image instances to text using
+wandtesseract allows quick conversion of WAND Image instances to text using
 Tesseract-OCR.
 
 Warning:
-    piltesseract is intended to only work with tesseract 3.03+, one awesome 
+    wandtesseract is intended to only work with tesseract 3.03+, one awesome 
     feature added in 3.03 is the ability to pipe images via stdin, 
-    piltesseract utilizes this feature.
+    wandtesseract utilizes this feature.
 
 Examples:
-    >>> from PIL import Image
-    >>> from piltesseract import get_text_from_image
-    >>> image = Image.open('quickfox.png')
+    >>> from wand.image import Image
+    >>> from wandtesseract import get_text_from_image
+    >>> image = Image(filename='quickfox.png')
     >>> get_text_from_image(image)
     'The quick brown fox jumps over the lazy dog'
     
@@ -24,7 +24,7 @@ Examples:
             )
 
 """
-from piltesseract.tesseractwrapper import get_text_from_image
+from wandtesseract.tesseractwrapper import get_text_from_image
 
 
 __all__ = ['get_text_from_image']

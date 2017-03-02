@@ -17,7 +17,7 @@ import platform
 import subprocess
 from subprocess import PIPE
 import sys
-from PIL import Image
+from wand.image import Image
 import six
 
 
@@ -45,7 +45,7 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
     https://tesseract-ocr.googlecode.com/svn/trunk/doc/tesseract.1.html
 
     Args:
-        image (Image.Image or str): The image to find text from or a path to
+        image (Image or str): The image to find text from or a path to
             that image.
         tesseract_dir_path (Optional[str]): The path to the directory 
             with the tesseract binary. Defaults to "", which works if the 
@@ -98,7 +98,7 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         '1  11 '
 
     """
-    if isinstance(image, Image.Image):
+    if isinstance(image, Image):
         image_input = "stdin"
         use_stdin = True
     elif isinstance(image, six.text_type):
@@ -136,11 +136,10 @@ def get_text_from_image(image, tesseract_dir_path=TESSERACT_DIR, stderr=None,
         else:
             image_format = image.format
         # Only RGBA supported format is PNG I believe.
-        if image.mode == "RGBA" and image_format != "PNG":
-            new_image = Image.new(mode='RGB', size=image.size, color=(255, 255, 255))
-            new_image.paste(image)
+        if image_format != "PNG":
+            new_image = image.convert("PNG")
             image = new_image
-        image.save(pipe.stdin, format=image_format)
+        image.save(file=pipe.stdin)
         pipe.stdin.close()
     text = pipe.stdout.read()
     error = pipe.stderr.read()
