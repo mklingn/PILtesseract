@@ -10,7 +10,7 @@ packages  = [package_name,]
 version_path = os.path.join("piltesseract", "_version.py")
 
 
-with codecs.open(version_path) as f:
+with codecs.open(version_path, encoding="utf-8") as f:
     version = '.'.join(str(e) for e in json.load(f))
 with codecs.open('README.md', 'r', 'utf-8') as f:
     readme = f.read()
